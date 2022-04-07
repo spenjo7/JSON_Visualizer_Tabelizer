@@ -1,0 +1,32 @@
+body{
+	background-color: #4d0028;
+	color: yellow;
+	margin-left: 5%;
+	margin-right: 5%;
+	margin-top: 5%;
+}
+
+h2{
+	color:  limegreen;
+}
+
+label{
+	color: white;
+	font-size: large;
+}
+
+div.flex{
+	display: flex;
+	gap: 2%;
+}
+
+textarea{
+	padding: 5px;
+}
+
+p.output{
+	padding: 15px;
+	background-color: white;
+	color: black;
+	width: 60%;
+}

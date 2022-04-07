@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+
+	<title>JSON Formatter</title>
+	<meta name="description" content="">
+	<meta name="author" content="">
+	<meta name="keywords" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	
+	<link rel="stylesheet" href="styles.css?v=1.0">
+	<style></style>
+</head>
+<h1>JSON Formatter</h1>
+
+<section>
+	<h2>Input Data:</h2>
+	<label>
+		Drag a .json file into the text box to import ( and beautify ) it.
+			<br>
+		<textarea id="textarea" cols="100", rows ="15" ></textarea>
+	</label>
+
+		<br>
+
+	<label>Select Attribute:
+		<select id="select_derived" disabled>
+			<option>(none)</option>
+		</select>
+	</label>
+</section>
+
+<section>
+	<h2>Buttons:</h2>
+	<br>
+	<div class="flex">
+		<button name="beautifier_button" id="btn_01">Beautify JSON<br> (plaintext)</button>
+		<button name="tabelizer_button" id="btn_02">Tabelize JSON<br> (plaintext)</button>
+		<button name="tabelizer_button" id="btn_03">Tabelize JSON<br> (HTML)</button>
+		<button name="copy_output" id="btn_04">Copy<br>Output</button>
+	<div>
+</section>
+
+<section>
+	<h2>Output Data:</h2>
+	<p id="p_output" class="output">
+		<strong>After Loading in some JSON, press the button to tabelize it here!</strong>
+	</p>  
+</section>
+
+<body>
+	<script src="copyToClipboard.js"></script>
+	<script src="beautifyJSON.js"></script>
+	<script src="handleFiles.js"></script>
+	<script src="tabelizeJSON.js"></script>
+	<script src="update_selector.js"></script>
+	<script>
+
+// Local Variables //
+const textarea = document.getElementById('textarea')
+	textarea.value = '' // sometimes the browsers will cache prior data and we want to clear it out
+const p_output = document.getElementById('p_output')
+const select_derived = document.getElementById('select_derived')
+
+let storedObject = null // will need later
+let copyPlaintext = true
+
+
+// Buttons and Inputs ///
+document.getElementById('btn_01').addEventListener('click', (e)=>{
+	e.preventDefault()
+	copyPlaintext = true
+
+	beautifyJSON(textarea.value, (output, _isValidJSON, _object ) => {
+		storedObject = _object
+		textarea.value = output
+
+		if(_isValidJSON){ // populate select box options
+		
+				// Start with current branch of tree as default
+			let keys = ["(none)"]
+			let vals = [JSON.stringify(storedObject)]
+
+			Object.entries(_object).forEach( el =>{
+				keys.push(el[0])
+				vals.push(JSON.stringify(el[1]))
+			})
+
+			updateSelectOptions(select_derived, keys, vals)
+			select_derived.disabled = false
+			p_output.innerHTML= `<pre>${output}</pre>`
+
+		} else {
+			updateSelectOptions(select_derived, "(none)")
+			select_derived.disabled = true
+		}
+	})
+})
+
+
+document.getElementById('btn_02').addEventListener('click', (e)=> {
+	e.preventDefault()
+	copyPlaintext = true
+	beautifyJSON(textarea.value, (text, _isValid)=>{
+		if(_isValid){
+			output = tableizeJSON(text)
+			p_output.innerHTML= `<pre>${output}</pre>`
+		} else {
+			p_output.innerText = `The contents of the textbox are not valid JSON`
+		}
+	})
+})
+
+document.getElementById('btn_03').addEventListener('click', (e)=> {
+	e.preventDefault()
+	copyPlaintext = false
+	beautifyJSON(textarea.value, (text, _isValid)=>{
+		if(_isValid){
+			p_output.innerText = null
+			p_output.appendChild( tableToHTML(tableizeJSON(text)))
+		} else {
+			p_output.innerText = `The contents of the textbox are not valid JSON`
+		}
+	})
+})
+
+document.getElementById('btn_04').addEventListener('click', (e) => {
+	e.preventDefault()
+	let _contents = copyPlaintext? p_output.innerText
+		: p_output.innerHTML
+			.replace( /\</gm,  '\n\<')
+			.replace( /\n\<\//gm, '</' )
+			.trim()
+
+	copyToClipboard( _contents )
+
+})
+
+
+// Select Box Options //
+select_derived.addEventListener("change", (e)=>{
+	let t = e.target
+	let text = t.options[t.selectedIndex].text
+	let {value} = t
+	textarea.value = value
+})
+
+
+
+// test
+textarea.value = `{"results": [{"lorem":"ipsum","dolor":true,"sit":{"amet":"consectetur","adipiscing":"elit"},"sed":"do","eiusmod":"tempor"},{"lorem":"ipsum","dolor":false,"sit":{"amet":"consectetur","adipiscing":"elit"},"sed":"do","eiusmod":"tempor"}]}`
+
+	</script>
+</body>
+</html>
